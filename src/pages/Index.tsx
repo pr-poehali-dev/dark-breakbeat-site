@@ -97,26 +97,38 @@ export default function Index() {
       {/* ══ ОБЪЁМНЫЙ ФОН ══ */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
 
-        {/* Зернистость — SVG feTurbulence */}
+        {/* Слой 1 — грубая зернистость (крупная) */}
         <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <filter id="grain" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
-              <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="4" stitchTiles="stitch" result="noise" />
+            <filter id="grain-coarse" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
+              <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="3" stitchTiles="stitch" result="noise" />
               <feColorMatrix type="saturate" values="0" in="noise" result="grey" />
-              <feComposite in="grey" in2="SourceGraphic" operator="over" />
+              <feBlend in="grey" in2="SourceGraphic" mode="soft-light" />
             </filter>
           </defs>
-          <rect width="100%" height="100%" fill="rgba(160,155,150,0.18)" filter="url(#grain)" />
+          <rect width="100%" height="100%" fill="rgba(180,172,165,0.55)" filter="url(#grain-coarse)" />
         </svg>
 
-        {/* Сетка-рельеф */}
+        {/* Слой 2 — мелкая зернистость поверх */}
+        <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="grain-fine" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
+              <feTurbulence type="fractalNoise" baseFrequency="0.88" numOctaves="4" stitchTiles="stitch" result="noise" />
+              <feColorMatrix type="saturate" values="0" in="noise" result="grey" />
+              <feBlend in="grey" in2="SourceGraphic" mode="overlay" />
+            </filter>
+          </defs>
+          <rect width="100%" height="100%" fill="rgba(140,135,130,0.40)" filter="url(#grain-fine)" />
+        </svg>
+
+        {/* Слой 3 — сетка-рельеф */}
         <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
-              <path d="M 72 0 L 0 0 0 72" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="0.6" />
+              <path d="M 72 0 L 0 0 0 72" fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="0.7" />
             </pattern>
-            <radialGradient id="gm" cx="50%" cy="50%" r="55%">
-              <stop offset="10%" stopColor="white" stopOpacity="1" />
+            <radialGradient id="gm" cx="50%" cy="50%" r="60%">
+              <stop offset="0%" stopColor="white" stopOpacity="1" />
               <stop offset="100%" stopColor="white" stopOpacity="0" />
             </radialGradient>
             <mask id="gf"><rect width="100%" height="100%" fill="url(#gm)" /></mask>
@@ -124,44 +136,57 @@ export default function Index() {
           <rect width="100%" height="100%" fill="url(#grid)" mask="url(#gf)" />
         </svg>
 
-        {/* Трещины */}
+        {/* Слой 4 — трещины, царапины, рельеф */}
         <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-          {/* Главная вертикальная трещина слева */}
-          <path d="M 210 0 Q 205 100 218 210 Q 230 300 210 420 Q 192 540 218 660 Q 235 760 212 900" stroke="rgba(255,255,255,0.28)" strokeWidth="1.4" fill="none" />
-          {/* Ответвление трещины */}
-          <path d="M 213 290 Q 248 308 272 328 Q 296 348 328 338" stroke="rgba(255,255,255,0.18)" strokeWidth="0.9" fill="none" />
-          <path d="M 215 520 Q 190 538 170 530 Q 150 522 132 540" stroke="rgba(255,255,255,0.14)" strokeWidth="0.7" fill="none" />
+          {/* Главная трещина — левая, с ветвями */}
+          <path d="M 195 0 Q 190 90 205 200 Q 218 295 196 415 Q 176 535 204 660 Q 224 760 198 900" stroke="rgba(255,255,255,0.55)" strokeWidth="1.8" fill="none" />
+          <path d="M 198 280 Q 238 302 268 325 Q 298 348 340 336 Q 370 326 395 342" stroke="rgba(255,255,255,0.35)" strokeWidth="1.1" fill="none" />
+          <path d="M 200 540 Q 172 558 150 548 Q 128 538 106 558 Q 88 572 70 565" stroke="rgba(255,255,255,0.28)" strokeWidth="0.9" fill="none" />
+          <path d="M 204 660 Q 230 668 250 658 Q 270 648 290 660" stroke="rgba(255,255,255,0.22)" strokeWidth="0.7" fill="none" />
+
           {/* Правая трещина */}
-          <path d="M 1050 0 Q 1045 130 1058 260 Q 1070 370 1052 490 Q 1036 600 1055 730 Q 1068 820 1052 900" stroke="rgba(255,255,255,0.22)" strokeWidth="1.2" fill="none" />
-          <path d="M 1054 380 Q 1090 396 1118 384 Q 1146 372 1170 392" stroke="rgba(255,255,255,0.14)" strokeWidth="0.8" fill="none" />
-          {/* Диагональная трещина */}
-          <path d="M 0 380 Q 200 356 380 374 Q 560 392 720 362 Q 880 332 1060 368 Q 1240 400 1440 370" stroke="rgba(255,255,255,0.13)" strokeWidth="0.9" fill="none" />
-          {/* Мелкие царапины */}
-          <path d="M 560 0 Q 556 90 564 200 Q 572 290 558 410 Q 546 500 562 620" stroke="rgba(255,255,255,0.11)" strokeWidth="0.7" fill="none" />
-          <path d="M 820 300 Q 818 400 826 500 Q 834 590 820 700 Q 808 790 822 900" stroke="rgba(255,255,255,0.09)" strokeWidth="0.6" fill="none" />
-          <path d="M 0 600 Q 100 592 200 602 Q 300 612 420 596" stroke="rgba(255,255,255,0.08)" strokeWidth="0.6" fill="none" />
-          {/* Световые блики выпуклостей */}
-          <ellipse cx="300" cy="180" rx="220" ry="70" fill="rgba(255,255,255,0.055)" />
-          <ellipse cx="1180" cy="680" rx="180" ry="65" fill="rgba(255,255,255,0.045)" />
-          <ellipse cx="750" cy="50" rx="240" ry="45" fill="rgba(255,255,255,0.04)" />
-          <ellipse cx="100" cy="500" rx="140" ry="55" fill="rgba(255,255,255,0.03)" />
-          {/* Тёмные впадины */}
-          <ellipse cx="450" cy="520" rx="160" ry="55" fill="rgba(0,0,0,0.45)" />
-          <ellipse cx="1150" cy="280" rx="130" ry="48" fill="rgba(0,0,0,0.38)" />
-          <ellipse cx="200" cy="760" rx="150" ry="52" fill="rgba(0,0,0,0.4)" />
-          <ellipse cx="900" cy="450" rx="110" ry="40" fill="rgba(0,0,0,0.32)" />
+          <path d="M 1060 0 Q 1054 120 1068 255 Q 1080 368 1058 492 Q 1038 606 1060 732 Q 1076 824 1058 900" stroke="rgba(255,255,255,0.45)" strokeWidth="1.6" fill="none" />
+          <path d="M 1062 370 Q 1102 390 1132 376 Q 1162 362 1192 382 Q 1215 396 1235 386" stroke="rgba(255,255,255,0.28)" strokeWidth="0.9" fill="none" />
+          <path d="M 1060 600 Q 1030 616 1010 606" stroke="rgba(255,255,255,0.2)" strokeWidth="0.7" fill="none" />
+
+          {/* Средняя тонкая трещина */}
+          <path d="M 580 0 Q 575 80 584 190 Q 592 285 576 400 Q 562 510 580 630 Q 594 730 578 900" stroke="rgba(255,255,255,0.28)" strokeWidth="1.0" fill="none" />
+          <path d="M 579 320 Q 610 338 636 326" stroke="rgba(255,255,255,0.18)" strokeWidth="0.7" fill="none" />
+
+          {/* Горизонтальная трещина */}
+          <path d="M 0 395 Q 180 370 360 388 Q 540 406 720 374 Q 900 342 1080 378 Q 1260 412 1440 382" stroke="rgba(255,255,255,0.22)" strokeWidth="1.0" fill="none" />
+
+          {/* Тонкие царапины */}
+          <path d="M 840 200 Q 838 310 846 430 Q 854 540 840 660 Q 828 760 842 900" stroke="rgba(255,255,255,0.16)" strokeWidth="0.7" fill="none" />
+          <path d="M 0 620 Q 120 610 240 622 Q 360 634 480 616" stroke="rgba(255,255,255,0.14)" strokeWidth="0.6" fill="none" />
+          <path d="M 1300 0 Q 1296 100 1305 220 Q 1314 330 1298 460" stroke="rgba(255,255,255,0.14)" strokeWidth="0.6" fill="none" />
+          <path d="M 320 700 Q 360 690 400 702 Q 440 714 490 700" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5" fill="none" />
+
+          {/* Световые выпуклости (рельеф) */}
+          <ellipse cx="280" cy="160" rx="260" ry="85" fill="rgba(255,255,255,0.10)" />
+          <ellipse cx="1200" cy="700" rx="210" ry="75" fill="rgba(255,255,255,0.09)" />
+          <ellipse cx="760" cy="55" rx="280" ry="55" fill="rgba(255,255,255,0.08)" />
+          <ellipse cx="80" cy="480" rx="160" ry="62" fill="rgba(255,255,255,0.07)" />
+          <ellipse cx="1380" cy="350" rx="120" ry="50" fill="rgba(255,255,255,0.06)" />
+
+          {/* Глубокие впадины */}
+          <ellipse cx="460" cy="530" rx="190" ry="65" fill="rgba(0,0,0,0.60)" />
+          <ellipse cx="1140" cy="270" rx="160" ry="58" fill="rgba(0,0,0,0.52)" />
+          <ellipse cx="210" cy="770" rx="180" ry="62" fill="rgba(0,0,0,0.55)" />
+          <ellipse cx="910" cy="460" rx="140" ry="50" fill="rgba(0,0,0,0.48)" />
+          <ellipse cx="680" cy="820" rx="130" ry="45" fill="rgba(0,0,0,0.44)" />
         </svg>
 
-        {/* Виньетка глубокая */}
+        {/* Виньетка — очень тёмная */}
         <div style={{
           position: "absolute", inset: 0,
-          background: "radial-gradient(ellipse 100% 85% at 50% 50%, transparent 15%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.92) 100%)",
+          background: "radial-gradient(ellipse 90% 80% at 50% 50%, transparent 5%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.95) 100%)",
         }} />
 
-        {/* Внутренняя тень по краям */}
+        {/* Внутренняя тень-рамка */}
         <div style={{
           position: "absolute", inset: 0,
-          boxShadow: "inset 0 0 280px 80px rgba(0,0,0,0.85)",
+          boxShadow: "inset 0 0 350px 120px rgba(0,0,0,0.95)",
         }} />
       </div>
 
