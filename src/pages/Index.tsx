@@ -92,7 +92,12 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "var(--dark)" }}>
+    <div className="textured-bg min-h-screen flex flex-col" style={{ background: "var(--dark)" }}>
+
+      {/* Объёмные слои фона */}
+      <div className="grid-relief" />
+      <div className="emboss-spots" />
+      <div className="vignette-bg" />
 
       {/* NAVBAR */}
       <nav
@@ -155,7 +160,7 @@ export default function Index() {
       )}
 
       {/* MAIN */}
-      <main className="flex-1 pt-[60px] pb-[72px]">
+      <main className="flex-1 pt-[60px] pb-[72px] relative" style={{ zIndex: 1 }}>
 
         {/* ═══ ГЛАВНАЯ ═══ */}
         {activeSection === "главная" && (
