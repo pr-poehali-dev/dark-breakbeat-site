@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 220 35% 5%;
+    --background: 10 40% 4%;
     --foreground: 0 0% 90%;
 
     --card: 0 0% 7%;
@@ -36,12 +36,12 @@
 
     /* Custom */
     --red: #e63030;
-    --dark: #070a0f;
-    --grey: #0e1219;
-    --grey-mid: #171d27;
-    --grey-light: #232c3a;
-    --text-dim: #5a6478;
-    --text-muted: #363f52;
+    --dark: #0f0805;
+    --grey: #1a1008;
+    --grey-mid: #221508;
+    --grey-light: #2e1e0e;
+    --text-dim: #6b5040;
+    --text-muted: #3f2e20;
   }
 }
 
@@ -83,7 +83,7 @@
 
 @layer utilities {
   .font-oswald {
-    font-family: "Cormorant", serif;
+    font-family: "Playfair Display", serif;
   }
 
   .font-mono-ibm {

@@ -108,7 +108,7 @@ export default function Index() {
           className="font-oswald text-xl tracking-widest text-white cursor-pointer"
           onClick={() => setActiveSection("главная")}
         >
-          OVERLOST<span style={{ color: "var(--red)" }}>.</span>
+          <span style={{ fontStyle: "italic" }}>Over</span><span style={{ color: "var(--red)", fontStyle: "italic" }}>lost</span><span style={{ color: "var(--red)" }}>.</span>
         </div>
 
         <div className="hidden md:flex gap-8">
@@ -194,13 +194,13 @@ export default function Index() {
               <h1
                 className="font-oswald leading-none text-white animate-fade-up-delay-1"
                 style={{
-                  fontSize: "clamp(5rem, 16vw, 13rem)",
-                  fontWeight: 700,
-                  letterSpacing: "0.04em",
+                  fontSize: "clamp(4.5rem, 15vw, 12rem)",
+                  fontWeight: 900,
+                  letterSpacing: "-0.01em",
                   fontStyle: "italic",
                 }}
               >
-                OVER<span style={{ color: "var(--red)", fontStyle: "normal" }}>LOST</span>
+                Over<span style={{ color: "var(--red)" }}>lost</span>
               </h1>
 
               <p
