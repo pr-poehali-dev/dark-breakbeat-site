@@ -19,7 +19,8 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				oswald: ['Playfair Display', 'serif'],
+				oswald: ['Philosopher', 'serif'],
+				script: ['Marck Script', 'cursive'],
 				mono: ['IBM Plex Mono', 'monospace'],
 				sans: ['IBM Plex Sans', 'sans-serif'],
 			},

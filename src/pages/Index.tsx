@@ -204,8 +204,8 @@ export default function Index() {
               </h1>
 
               <p
-                className="font-mono text-sm mt-5 max-w-xs animate-fade-up-delay-2"
-                style={{ color: "var(--text-dim)", lineHeight: 1.9 }}
+                className="font-script mt-5 max-w-sm animate-fade-up-delay-2"
+                style={{ color: "var(--text-dim)", lineHeight: 1.8, fontSize: "clamp(1.1rem, 2vw, 1.4rem)" }}
               >
                 Индустриальный брейкбит.<br />
                 Ломаный ритм. Конкретный звук.

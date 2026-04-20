@@ -83,7 +83,11 @@
 
 @layer utilities {
   .font-oswald {
-    font-family: "Playfair Display", serif;
+    font-family: "Philosopher", serif;
+  }
+
+  .font-script {
+    font-family: "Marck Script", cursive;
   }
 
   .font-mono-ibm {
