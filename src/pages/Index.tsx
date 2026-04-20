@@ -15,137 +15,31 @@ const TRACKS = [
 const SECTIONS = ["главная", "музыка", "о проекте", "контакты"] as const;
 type Section = typeof SECTIONS[number];
 
-function BgCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const W = window.innerWidth;
-    const H = window.innerHeight;
-    canvas.width = W;
-    canvas.height = H;
-
-    // Базовый фон
-    ctx.fillStyle = "#0d0e10";
-    ctx.fillRect(0, 0, W, H);
-
-    // === ЗЕРНИСТОСТЬ ===
-    const imageData = ctx.getImageData(0, 0, W, H);
-    const data = imageData.data;
-    for (let i = 0; i < data.length; i += 4) {
-      const grain = (Math.random() - 0.5) * 80;
-      data[i]     = Math.max(0, Math.min(255, data[i]     + grain));
-      data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + grain));
-      data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + grain));
-    }
-    ctx.putImageData(imageData, 0, 0);
-
-    // === СЕТКА ===
-    const step = 72;
-    ctx.strokeStyle = "rgba(255,255,255,0.12)";
-    ctx.lineWidth = 0.6;
-    for (let x = 0; x <= W; x += step) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-    }
-    for (let y = 0; y <= H; y += step) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-    }
-
-    // === РЕЛЬЕФНЫЕ ПЯТНА (выпуклости) ===
-    const bumps = [
-      { x: 0.18, y: 0.18, rx: 0.22, ry: 0.10, light: true },
-      { x: 0.82, y: 0.75, rx: 0.18, ry: 0.09, light: true },
-      { x: 0.52, y: 0.06, rx: 0.24, ry: 0.07, light: true },
-      { x: 0.07, y: 0.55, rx: 0.14, ry: 0.08, light: true },
-      { x: 0.93, y: 0.38, rx: 0.12, ry: 0.07, light: true },
-      { x: 0.32, y: 0.58, rx: 0.16, ry: 0.07, light: false },
-      { x: 0.78, y: 0.30, rx: 0.14, ry: 0.06, light: false },
-      { x: 0.15, y: 0.82, rx: 0.16, ry: 0.07, light: false },
-      { x: 0.62, y: 0.50, rx: 0.12, ry: 0.06, light: false },
-      { x: 0.47, y: 0.90, rx: 0.13, ry: 0.05, light: false },
-    ];
-    bumps.forEach(b => {
-      const cx = b.x * W, cy = b.y * H;
-      const rx = b.rx * W, ry = b.ry * H;
-      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry));
-      if (b.light) {
-        grad.addColorStop(0, "rgba(255,255,255,0.18)");
-        grad.addColorStop(0.5, "rgba(255,255,255,0.06)");
-        grad.addColorStop(1, "rgba(255,255,255,0)");
-      } else {
-        grad.addColorStop(0, "rgba(0,0,0,0.65)");
-        grad.addColorStop(0.5, "rgba(0,0,0,0.30)");
-        grad.addColorStop(1, "rgba(0,0,0,0)");
-      }
-      ctx.save();
-      ctx.scale(1, ry / rx);
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(cx, cy * (rx / ry), rx, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    });
-
-    // === ТРЕЩИНЫ ===
-    const crack = (pts: [number, number][], alpha: number, width: number) => {
-      ctx.beginPath();
-      ctx.moveTo(pts[0][0] * W, pts[0][1] * H);
-      for (let i = 1; i < pts.length - 1; i++) {
-        const mx = ((pts[i][0] + pts[i+1][0]) / 2) * W;
-        const my = ((pts[i][1] + pts[i+1][1]) / 2) * H;
-        ctx.quadraticCurveTo(pts[i][0] * W, pts[i][1] * H, mx, my);
-      }
-      ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
-      ctx.lineWidth = width;
-      ctx.stroke();
-    };
-
-    // Главная левая трещина
-    crack([[0.13,0],[0.13,0.12],[0.145,0.25],[0.135,0.38],[0.12,0.52],[0.138,0.66],[0.148,0.78],[0.135,1]], 0.7, 1.8);
-    // Ветвь 1
-    crack([[0.135,0.30],[0.17,0.34],[0.21,0.37],[0.25,0.36]], 0.45, 1.1);
-    // Ветвь 2
-    crack([[0.138,0.53],[0.11,0.56],[0.08,0.55],[0.055,0.57]], 0.38, 0.9);
-
-    // Правая трещина
-    crack([[0.73,0],[0.73,0.14],[0.742,0.28],[0.732,0.43],[0.718,0.57],[0.735,0.70],[0.745,0.84],[0.732,1]], 0.62, 1.6);
-    // Ветвь правой
-    crack([[0.735,0.40],[0.77,0.43],[0.80,0.41],[0.83,0.43]], 0.35, 0.9);
-    crack([[0.733,0.65],[0.71,0.67],[0.69,0.66]], 0.28, 0.7);
-
-    // Средняя трещина
-    crack([[0.40,0],[0.40,0.10],[0.408,0.22],[0.398,0.35],[0.388,0.48],[0.402,0.62],[0.41,0.78],[0.398,1]], 0.42, 1.2);
-    crack([[0.401,0.32],[0.43,0.34],[0.45,0.33]], 0.25, 0.7);
-
-    // Горизонтальная трещина
-    crack([[0,0.42],[0.15,0.40],[0.30,0.42],[0.50,0.39],[0.70,0.41],[0.85,0.38],[1,0.41]], 0.30, 1.0);
-
-    // Мелкие царапины
-    crack([[0.58,0.22],[0.582,0.35],[0.576,0.48],[0.585,0.62],[0.578,0.78]], 0.22, 0.7);
-    crack([[0,0.68],[0.09,0.67],[0.18,0.685],[0.30,0.675]], 0.20, 0.6);
-    crack([[0.90,0],[0.902,0.12],[0.896,0.26],[0.905,0.40]], 0.20, 0.6);
-    crack([[0.22,0.77],[0.27,0.76],[0.32,0.77],[0.37,0.765]], 0.18, 0.5);
-
-    // === ВИНЬЕТКА ===
-    const vig = ctx.createRadialGradient(W/2, H/2, H*0.05, W/2, H/2, W*0.75);
-    vig.addColorStop(0, "rgba(0,0,0,0)");
-    vig.addColorStop(0.45, "rgba(0,0,0,0.35)");
-    vig.addColorStop(0.75, "rgba(0,0,0,0.72)");
-    vig.addColorStop(1, "rgba(0,0,0,0.96)");
-    ctx.fillStyle = vig;
-    ctx.fillRect(0, 0, W, H);
-
-  }, []);
-
+function BgTexture() {
   return (
-    <canvas
-      ref={canvasRef}
-      style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", width: "100%", height: "100%" }}
-    />
+    <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
+      {/* Фото камня — основа */}
+      <img
+        src="https://cdn.poehali.dev/projects/987214c8-edff-4991-b724-287d26e95ca6/bucket/4cd5be8f-bee1-4022-b0ab-1210bc0423da.jpg"
+        style={{
+          position: "absolute", inset: 0,
+          width: "100%", height: "100%",
+          objectFit: "cover",
+          filter: "brightness(0.55) contrast(1.2) saturate(0)",
+        }}
+        alt=""
+      />
+      {/* Затемнение центра для читаемости текста */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "radial-gradient(ellipse 80% 70% at 50% 50%, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 100%)",
+      }} />
+      {/* Виньетка по краям */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "radial-gradient(ellipse 100% 100% at 50% 50%, transparent 30%, rgba(0,0,0,0.6) 65%, rgba(0,0,0,0.92) 100%)",
+      }} />
+    </div>
   );
 }
 
@@ -228,8 +122,8 @@ export default function Index() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "var(--dark)", position: "relative" }}>
 
-      {/* ══ ОБЪЁМНЫЙ ФОН (canvas) ══ */}
-      <BgCanvas />
+      {/* ══ ТЕКСТУРНЫЙ ФОН ══ */}
+      <BgTexture />
 
       {/* NAVBAR */}
       <nav
