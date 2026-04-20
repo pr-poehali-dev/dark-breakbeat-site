@@ -15,6 +15,140 @@ const TRACKS = [
 const SECTIONS = ["главная", "музыка", "о проекте", "контакты"] as const;
 type Section = typeof SECTIONS[number];
 
+function BgCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+
+    // Базовый фон
+    ctx.fillStyle = "#0d0e10";
+    ctx.fillRect(0, 0, W, H);
+
+    // === ЗЕРНИСТОСТЬ ===
+    const imageData = ctx.getImageData(0, 0, W, H);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const grain = (Math.random() - 0.5) * 80;
+      data[i]     = Math.max(0, Math.min(255, data[i]     + grain));
+      data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + grain));
+      data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + grain));
+    }
+    ctx.putImageData(imageData, 0, 0);
+
+    // === СЕТКА ===
+    const step = 72;
+    ctx.strokeStyle = "rgba(255,255,255,0.12)";
+    ctx.lineWidth = 0.6;
+    for (let x = 0; x <= W; x += step) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (let y = 0; y <= H; y += step) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+
+    // === РЕЛЬЕФНЫЕ ПЯТНА (выпуклости) ===
+    const bumps = [
+      { x: 0.18, y: 0.18, rx: 0.22, ry: 0.10, light: true },
+      { x: 0.82, y: 0.75, rx: 0.18, ry: 0.09, light: true },
+      { x: 0.52, y: 0.06, rx: 0.24, ry: 0.07, light: true },
+      { x: 0.07, y: 0.55, rx: 0.14, ry: 0.08, light: true },
+      { x: 0.93, y: 0.38, rx: 0.12, ry: 0.07, light: true },
+      { x: 0.32, y: 0.58, rx: 0.16, ry: 0.07, light: false },
+      { x: 0.78, y: 0.30, rx: 0.14, ry: 0.06, light: false },
+      { x: 0.15, y: 0.82, rx: 0.16, ry: 0.07, light: false },
+      { x: 0.62, y: 0.50, rx: 0.12, ry: 0.06, light: false },
+      { x: 0.47, y: 0.90, rx: 0.13, ry: 0.05, light: false },
+    ];
+    bumps.forEach(b => {
+      const cx = b.x * W, cy = b.y * H;
+      const rx = b.rx * W, ry = b.ry * H;
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rx, ry));
+      if (b.light) {
+        grad.addColorStop(0, "rgba(255,255,255,0.18)");
+        grad.addColorStop(0.5, "rgba(255,255,255,0.06)");
+        grad.addColorStop(1, "rgba(255,255,255,0)");
+      } else {
+        grad.addColorStop(0, "rgba(0,0,0,0.65)");
+        grad.addColorStop(0.5, "rgba(0,0,0,0.30)");
+        grad.addColorStop(1, "rgba(0,0,0,0)");
+      }
+      ctx.save();
+      ctx.scale(1, ry / rx);
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx, cy * (rx / ry), rx, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // === ТРЕЩИНЫ ===
+    const crack = (pts: [number, number][], alpha: number, width: number) => {
+      ctx.beginPath();
+      ctx.moveTo(pts[0][0] * W, pts[0][1] * H);
+      for (let i = 1; i < pts.length - 1; i++) {
+        const mx = ((pts[i][0] + pts[i+1][0]) / 2) * W;
+        const my = ((pts[i][1] + pts[i+1][1]) / 2) * H;
+        ctx.quadraticCurveTo(pts[i][0] * W, pts[i][1] * H, mx, my);
+      }
+      ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+      ctx.lineWidth = width;
+      ctx.stroke();
+    };
+
+    // Главная левая трещина
+    crack([[0.13,0],[0.13,0.12],[0.145,0.25],[0.135,0.38],[0.12,0.52],[0.138,0.66],[0.148,0.78],[0.135,1]], 0.7, 1.8);
+    // Ветвь 1
+    crack([[0.135,0.30],[0.17,0.34],[0.21,0.37],[0.25,0.36]], 0.45, 1.1);
+    // Ветвь 2
+    crack([[0.138,0.53],[0.11,0.56],[0.08,0.55],[0.055,0.57]], 0.38, 0.9);
+
+    // Правая трещина
+    crack([[0.73,0],[0.73,0.14],[0.742,0.28],[0.732,0.43],[0.718,0.57],[0.735,0.70],[0.745,0.84],[0.732,1]], 0.62, 1.6);
+    // Ветвь правой
+    crack([[0.735,0.40],[0.77,0.43],[0.80,0.41],[0.83,0.43]], 0.35, 0.9);
+    crack([[0.733,0.65],[0.71,0.67],[0.69,0.66]], 0.28, 0.7);
+
+    // Средняя трещина
+    crack([[0.40,0],[0.40,0.10],[0.408,0.22],[0.398,0.35],[0.388,0.48],[0.402,0.62],[0.41,0.78],[0.398,1]], 0.42, 1.2);
+    crack([[0.401,0.32],[0.43,0.34],[0.45,0.33]], 0.25, 0.7);
+
+    // Горизонтальная трещина
+    crack([[0,0.42],[0.15,0.40],[0.30,0.42],[0.50,0.39],[0.70,0.41],[0.85,0.38],[1,0.41]], 0.30, 1.0);
+
+    // Мелкие царапины
+    crack([[0.58,0.22],[0.582,0.35],[0.576,0.48],[0.585,0.62],[0.578,0.78]], 0.22, 0.7);
+    crack([[0,0.68],[0.09,0.67],[0.18,0.685],[0.30,0.675]], 0.20, 0.6);
+    crack([[0.90,0],[0.902,0.12],[0.896,0.26],[0.905,0.40]], 0.20, 0.6);
+    crack([[0.22,0.77],[0.27,0.76],[0.32,0.77],[0.37,0.765]], 0.18, 0.5);
+
+    // === ВИНЬЕТКА ===
+    const vig = ctx.createRadialGradient(W/2, H/2, H*0.05, W/2, H/2, W*0.75);
+    vig.addColorStop(0, "rgba(0,0,0,0)");
+    vig.addColorStop(0.45, "rgba(0,0,0,0.35)");
+    vig.addColorStop(0.75, "rgba(0,0,0,0.72)");
+    vig.addColorStop(1, "rgba(0,0,0,0.96)");
+    ctx.fillStyle = vig;
+    ctx.fillRect(0, 0, W, H);
+
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", width: "100%", height: "100%" }}
+    />
+  );
+}
+
 export default function Index() {
   const [activeSection, setActiveSection] = useState<Section>("главная");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -94,101 +228,8 @@ export default function Index() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "var(--dark)", position: "relative" }}>
 
-      {/* ══ ОБЪЁМНЫЙ ФОН ══ */}
-      <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
-
-        {/* Слой 1 — грубая зернистость (крупная) */}
-        <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <filter id="grain-coarse" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
-              <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="3" stitchTiles="stitch" result="noise" />
-              <feColorMatrix type="saturate" values="0" in="noise" result="grey" />
-              <feBlend in="grey" in2="SourceGraphic" mode="soft-light" />
-            </filter>
-          </defs>
-          <rect width="100%" height="100%" fill="rgba(180,172,165,0.55)" filter="url(#grain-coarse)" />
-        </svg>
-
-        {/* Слой 2 — мелкая зернистость поверх */}
-        <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <filter id="grain-fine" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
-              <feTurbulence type="fractalNoise" baseFrequency="0.88" numOctaves="4" stitchTiles="stitch" result="noise" />
-              <feColorMatrix type="saturate" values="0" in="noise" result="grey" />
-              <feBlend in="grey" in2="SourceGraphic" mode="overlay" />
-            </filter>
-          </defs>
-          <rect width="100%" height="100%" fill="rgba(140,135,130,0.40)" filter="url(#grain-fine)" />
-        </svg>
-
-        {/* Слой 3 — сетка-рельеф */}
-        <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
-              <path d="M 72 0 L 0 0 0 72" fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="0.7" />
-            </pattern>
-            <radialGradient id="gm" cx="50%" cy="50%" r="60%">
-              <stop offset="0%" stopColor="white" stopOpacity="1" />
-              <stop offset="100%" stopColor="white" stopOpacity="0" />
-            </radialGradient>
-            <mask id="gf"><rect width="100%" height="100%" fill="url(#gm)" /></mask>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" mask="url(#gf)" />
-        </svg>
-
-        {/* Слой 4 — трещины, царапины, рельеф */}
-        <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-          {/* Главная трещина — левая, с ветвями */}
-          <path d="M 195 0 Q 190 90 205 200 Q 218 295 196 415 Q 176 535 204 660 Q 224 760 198 900" stroke="rgba(255,255,255,0.55)" strokeWidth="1.8" fill="none" />
-          <path d="M 198 280 Q 238 302 268 325 Q 298 348 340 336 Q 370 326 395 342" stroke="rgba(255,255,255,0.35)" strokeWidth="1.1" fill="none" />
-          <path d="M 200 540 Q 172 558 150 548 Q 128 538 106 558 Q 88 572 70 565" stroke="rgba(255,255,255,0.28)" strokeWidth="0.9" fill="none" />
-          <path d="M 204 660 Q 230 668 250 658 Q 270 648 290 660" stroke="rgba(255,255,255,0.22)" strokeWidth="0.7" fill="none" />
-
-          {/* Правая трещина */}
-          <path d="M 1060 0 Q 1054 120 1068 255 Q 1080 368 1058 492 Q 1038 606 1060 732 Q 1076 824 1058 900" stroke="rgba(255,255,255,0.45)" strokeWidth="1.6" fill="none" />
-          <path d="M 1062 370 Q 1102 390 1132 376 Q 1162 362 1192 382 Q 1215 396 1235 386" stroke="rgba(255,255,255,0.28)" strokeWidth="0.9" fill="none" />
-          <path d="M 1060 600 Q 1030 616 1010 606" stroke="rgba(255,255,255,0.2)" strokeWidth="0.7" fill="none" />
-
-          {/* Средняя тонкая трещина */}
-          <path d="M 580 0 Q 575 80 584 190 Q 592 285 576 400 Q 562 510 580 630 Q 594 730 578 900" stroke="rgba(255,255,255,0.28)" strokeWidth="1.0" fill="none" />
-          <path d="M 579 320 Q 610 338 636 326" stroke="rgba(255,255,255,0.18)" strokeWidth="0.7" fill="none" />
-
-          {/* Горизонтальная трещина */}
-          <path d="M 0 395 Q 180 370 360 388 Q 540 406 720 374 Q 900 342 1080 378 Q 1260 412 1440 382" stroke="rgba(255,255,255,0.22)" strokeWidth="1.0" fill="none" />
-
-          {/* Тонкие царапины */}
-          <path d="M 840 200 Q 838 310 846 430 Q 854 540 840 660 Q 828 760 842 900" stroke="rgba(255,255,255,0.16)" strokeWidth="0.7" fill="none" />
-          <path d="M 0 620 Q 120 610 240 622 Q 360 634 480 616" stroke="rgba(255,255,255,0.14)" strokeWidth="0.6" fill="none" />
-          <path d="M 1300 0 Q 1296 100 1305 220 Q 1314 330 1298 460" stroke="rgba(255,255,255,0.14)" strokeWidth="0.6" fill="none" />
-          <path d="M 320 700 Q 360 690 400 702 Q 440 714 490 700" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5" fill="none" />
-
-          {/* Световые выпуклости (рельеф) */}
-          <ellipse cx="280" cy="160" rx="260" ry="85" fill="rgba(255,255,255,0.10)" />
-          <ellipse cx="1200" cy="700" rx="210" ry="75" fill="rgba(255,255,255,0.09)" />
-          <ellipse cx="760" cy="55" rx="280" ry="55" fill="rgba(255,255,255,0.08)" />
-          <ellipse cx="80" cy="480" rx="160" ry="62" fill="rgba(255,255,255,0.07)" />
-          <ellipse cx="1380" cy="350" rx="120" ry="50" fill="rgba(255,255,255,0.06)" />
-
-          {/* Глубокие впадины */}
-          <ellipse cx="460" cy="530" rx="190" ry="65" fill="rgba(0,0,0,0.60)" />
-          <ellipse cx="1140" cy="270" rx="160" ry="58" fill="rgba(0,0,0,0.52)" />
-          <ellipse cx="210" cy="770" rx="180" ry="62" fill="rgba(0,0,0,0.55)" />
-          <ellipse cx="910" cy="460" rx="140" ry="50" fill="rgba(0,0,0,0.48)" />
-          <ellipse cx="680" cy="820" rx="130" ry="45" fill="rgba(0,0,0,0.44)" />
-        </svg>
-
-        {/* Виньетка — очень тёмная */}
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "radial-gradient(ellipse 90% 80% at 50% 50%, transparent 5%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.95) 100%)",
-        }} />
-
-        {/* Внутренняя тень-рамка */}
-        <div style={{
-          position: "absolute", inset: 0,
-          boxShadow: "inset 0 0 350px 120px rgba(0,0,0,0.95)",
-        }} />
-      </div>
+      {/* ══ ОБЪЁМНЫЙ ФОН (canvas) ══ */}
+      <BgCanvas />
 
       {/* NAVBAR */}
       <nav
