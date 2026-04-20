@@ -108,7 +108,7 @@ export default function Index() {
           className="font-oswald text-xl tracking-widest text-white cursor-pointer"
           onClick={() => setActiveSection("главная")}
         >
-          BRKBT<span style={{ color: "var(--red)" }}>.</span>
+          OVERLOST<span style={{ color: "var(--red)" }}>.</span>
         </div>
 
         <div className="hidden md:flex gap-8">
@@ -196,10 +196,11 @@ export default function Index() {
                 style={{
                   fontSize: "clamp(5rem, 16vw, 13rem)",
                   fontWeight: 700,
-                  letterSpacing: "-0.02em",
+                  letterSpacing: "0.04em",
+                  fontStyle: "italic",
                 }}
               >
-                BRK<span style={{ color: "var(--red)" }}>BT</span>
+                OVER<span style={{ color: "var(--red)", fontStyle: "normal" }}>LOST</span>
               </h1>
 
               <p

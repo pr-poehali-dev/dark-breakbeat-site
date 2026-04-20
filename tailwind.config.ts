@@ -19,7 +19,7 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				oswald: ['Oswald', 'sans-serif'],
+				oswald: ['Cormorant', 'serif'],
 				mono: ['IBM Plex Mono', 'monospace'],
 				sans: ['IBM Plex Sans', 'sans-serif'],
 			},
